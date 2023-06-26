@@ -6,11 +6,14 @@ import openai
 
 
 app = Flask(__name__)
-CORS(app)
 
+CORS(app)
 load_dotenv()  # Load environment variables from the .env file
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_type = "azure"
+openai.api_base = "https://keaopenai.openai.azure.com/"
+openai.api_version = "2023-03-15-preview"  # subject to change
+openai.api_key = os.getenv("AZURE_API_KEY")
 
 
 @app.route("/", methods=["POST"])
@@ -18,9 +21,11 @@ def chat():
     try:
         data = request.get_json()
         response = openai.ChatCompletion.create(
-            model=data["model"],
+            # model=data["model"],
+            engine=data["engine"],
+            # deployment_id="gpt-3.5-turbo",
             messages=data["messages"],
-            temperature=1,
+            temperature=data["temperature"],
         )
         return jsonify(response)
     except Exception as e:
