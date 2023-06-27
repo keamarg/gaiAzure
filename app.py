@@ -26,6 +26,11 @@ def chat():
             # deployment_id="gpt-3.5-turbo",
             messages=data["messages"],
             temperature=data["temperature"],
+            max_tokens=data["max_tokens"],
+            top_p=data["top_p"],
+            frequency_penalty=data["frequency_penalty"],
+            presence_penalty=data["presence_penalty"],
+            stop=data["stop"],
         )
         return jsonify(response)
     except Exception as e:
