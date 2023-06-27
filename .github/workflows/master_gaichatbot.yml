@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'gaichatbot'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_0F0F937D658B4B76880919ADE912CBFE }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_596539193D7A42629A63E27325E8574D }}
