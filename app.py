@@ -13,7 +13,7 @@ import openai
 
 app = Flask(__name__)
 
-CORS(app)
+CORS(app, resources=r"/*")
 load_dotenv()  # Load environment variables from the .env file
 
 openai.api_type = "azure"
