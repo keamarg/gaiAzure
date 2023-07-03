@@ -3,8 +3,12 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
-# import psycopg2  # for postgres
+import psycopg2  # for postgres
 import openai
+
+# import logging
+
+# logging.basicConfig(level=logging.DEBUG)  # Enable logging for DEBUG level
 
 
 app = Flask(__name__)
@@ -17,31 +21,39 @@ openai.api_base = "https://keaopenai.openai.azure.com/"
 openai.api_version = "2023-03-15-preview"  # subject to change
 openai.api_key = os.getenv("AZURE_API_KEY")
 
-## Get the PostgreSQL connection string from environment variable
-# connection_string = os.getenv("POSTGRES_CONNECTION_STRING")
+# Get the PostgreSQL connection string from environment variable
+connection_string = os.getenv("POSTGRES_CONNECTION_STRING")
 
 
-# def execute_query(query):
-#    connection = psycopg2.connect(connection_string)
-#    cursor = connection.cursor()
-#    cursor.execute(query)
-#    result = cursor.fetchall()
-#    cursor.close()
-#    connection.close()
-#    return result
+def execute_query(query):
+    connection = psycopg2.connect(connection_string)
+    cursor = connection.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return result
 
 
-# @app.route("/projects", methods=["GET"])
-# def get_projects():
-#    try:
-#        # Example query to retrieve projects from the database
-#        query = "SELECT * FROM projects"
-#        result = execute_query(query)
-#        # Format the result as JSON and return it
-#        projects = [{"id": row[0], "name": row[1]} for row in result]
-#        return jsonify(projects)
-#    except Exception as e:
-#        return jsonify({"error": str(e)}), 500
+@app.route("/projects", methods=["GET"])
+def get_projects():
+    try:
+        # Example query to check if projects exist in the database
+        query = "SELECT COUNT(*) FROM projects"
+        result = execute_query(query)
+        count = result[0][0]  # Retrieve the count value from the result
+        if count > 0:
+            return jsonify({"message": "Projects exist in the database"})
+        else:
+            return jsonify({"message": "No projects found in the database"})
+        # # Example query to retrieve projects from the database
+        # query = "SELECT * FROM projects"
+        # result = execute_query(query)
+        # # Format the result as JSON and return it
+        # projects = [{"id": row[0], "name": row[1]} for row in result]
+        # return jsonify(projects)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/", methods=["POST"])
