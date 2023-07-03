@@ -24,6 +24,8 @@ openai.api_key = os.getenv("AZURE_API_KEY")
 # Get the PostgreSQL connection string from environment variable
 connection_string = os.getenv("POSTGRES_CONNECTION_STRING")
 
+print("testing connection")
+
 
 def test_database_connection():
     try:
