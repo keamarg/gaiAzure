@@ -27,6 +27,7 @@ connection_string = os.getenv("POSTGRES_CONNECTION_STRING")
 
 def test_database_connection():
     try:
+        print("testing database connection")
         conn = psycopg2.connect(connection_string)
         cursor = conn.cursor()
         cursor.execute("SELECT 1")
