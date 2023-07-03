@@ -25,35 +25,26 @@ openai.api_key = os.getenv("AZURE_API_KEY")
 connection_string = os.getenv("POSTGRES_CONNECTION_STRING")
 
 
-def execute_query(query):
-    connection = psycopg2.connect(connection_string)
-    cursor = connection.cursor()
-    cursor.execute(query)
-    result = cursor.fetchall()
-    cursor.close()
-    connection.close()
-    return result
-
-
-@app.route("/projects", methods=["GET"])
-def get_projects():
+def test_database_connection():
     try:
-        # Example query to check if projects exist in the database
-        query = "SELECT COUNT(*) FROM projects"
-        result = execute_query(query)
-        count = result[0][0]  # Retrieve the count value from the result
-        if count > 0:
-            return jsonify({"message": "Projects exist in the database"})
-        else:
-            return jsonify({"message": "No projects found in the database"})
-        # # Example query to retrieve projects from the database
-        # query = "SELECT * FROM projects"
-        # result = execute_query(query)
-        # # Format the result as JSON and return it
-        # projects = [{"id": row[0], "name": row[1]} for row in result]
-        # return jsonify(projects)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        conn = psycopg2.connect(connection_string)
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return result[0] == 1
+    except psycopg2.Error as e:
+        print(f"Error connecting to the database: {e}")
+        return False
+
+
+@app.route("/database")
+def database():
+    if test_database_connection():
+        return "Database connection successful"
+    else:
+        return "Unable to connect to the database"
 
 
 @app.route("/", methods=["POST"])
