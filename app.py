@@ -24,8 +24,6 @@ openai.api_key = os.getenv("AZURE_API_KEY")
 # Get the PostgreSQL connection string from environment variable
 connection_string = os.getenv("POSTGRES_CONNECTION_STRING")
 
-print("testing connection")
-
 
 def test_database_connection():
     try:
@@ -44,6 +42,7 @@ def test_database_connection():
 
 @app.route("/database")
 def database():
+    print("testing /database endpoint")
     if test_database_connection():
         return "Database connection successful"
     else:
@@ -52,6 +51,7 @@ def database():
 
 @app.route("/", methods=["POST"])
 def chat():
+    print("testing / endpoint")
     try:
         data = request.get_json()
         response = openai.ChatCompletion.create(
