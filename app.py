@@ -28,7 +28,9 @@ connection_string = os.getenv("POSTGRES_CONNECTION_STRING")
 def test_database_connection():
     try:
         print("testing database connection")
-        conn = psycopg2.connect(connection_string)
+        conn = psycopg2.connect(
+            "host=keagaidatabase.postgres.database.azure.com dbname=postgres user=keamarg password=UaomBT3k@*b port=5432"
+        )
         cursor = conn.cursor()
         cursor.execute("SELECT 1")
         result = cursor.fetchone()
