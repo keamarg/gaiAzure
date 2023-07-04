@@ -22,13 +22,13 @@ openai.api_version = "2023-03-15-preview"  # subject to change
 openai.api_key = os.getenv("AZURE_API_KEY")
 
 # Get the PostgreSQL connection string from environment variable
-connection_string = os.getenv("POSTGRES_CONNECTION_STRING")
+connection_string = os.getenv("AZURE_POSTGRESQL_CONNECTIONSTRING")
 
 
 def test_database_connection():
     try:
         print("testing database connection")
-        conn = psycopg2.connect(POSTGRES_CONNECTION_STRING)
+        conn = psycopg2.connect(connection_string)
         cursor = conn.cursor()
         cursor.execute("SELECT 1")
         result = cursor.fetchone()
