@@ -61,7 +61,7 @@ def database():
             cursor = conn.cursor()
 
             # Retrieve the entry based on the session ID
-            cursor.execute("SELECT content FROM chatdata WHERE id = %s", (session_id,))
+            cursor.execute("SELECT content FROM chatdata WHERE session_id = %s", (session_id,))
             entry = cursor.fetchone()
 
             if entry:
