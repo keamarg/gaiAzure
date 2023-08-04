@@ -156,8 +156,8 @@ def posts_endpoint():
             conn = psycopg2.connect(connection_string)
             cursor = conn.cursor()
 
-            # Retrieve all the posts from the posts_data table
-            cursor.execute("SELECT id, username, content FROM posts_data")
+            # Retrieve all the posts from the posts table
+            cursor.execute("SELECT id, username, content FROM posts")
             data = cursor.fetchall()
 
             # Create a list to hold all the posts
@@ -172,8 +172,48 @@ def posts_endpoint():
                 post_data = {
                     "id": post_id,
                     "username": username,
-                    "content": content
+                    "content": content,
+                    "comments": []
                 }
+
+                # Retrieve comments for the current post
+                cursor.execute("SELECT id, username, content FROM comments WHERE post_id = %s", (post_id,))
+                comments_data = cursor.fetchall()
+
+                for comment_row in comments_data:
+                    comment_id = comment_row[0]
+                    comment_username = comment_row[1]
+                    comment_content = comment_row[2]
+
+                    # Create a dictionary for each comment
+                    comment_data = {
+                        "id": comment_id,
+                        "username": comment_username,
+                        "content": comment_content,
+                        "replies": []
+                    }
+
+                    # Retrieve replies for the current comment
+                    cursor.execute("SELECT id, username, content FROM replies WHERE comment_id = %s", (comment_id,))
+                    replies_data = cursor.fetchall()
+
+                    for reply_row in replies_data:
+                        reply_id = reply_row[0]
+                        reply_username = reply_row[1]
+                        reply_content = reply_row[2]
+
+                        # Create a dictionary for each reply
+                        reply_data = {
+                            "id": reply_id,
+                            "username": reply_username,
+                            "content": reply_content
+                        }
+
+                        # Add the reply to the comment's 'replies' list
+                        comment_data["replies"].append(reply_data)
+
+                    # Add the comment to the post's 'comments' list
+                    post_data["comments"].append(comment_data)
 
                 all_posts.append(post_data)
 
@@ -187,33 +227,75 @@ def posts_endpoint():
             return jsonify({"error": "Unable to retrieve data"}), 500
 
     elif request.method == "POST":
-        username = request.get_json().get("username")
-        content = request.get_json().get("content")
+        data = request.get_json()
+        post_id = data.get("post_id")
+        username = data.get("username")
+        content = data.get("content")
 
-        if username and content:
-            try:
-                conn = psycopg2.connect(connection_string)
-                cursor = conn.cursor()
+        if post_id:
+            # This is a request to add a comment
+            if username and content:
+                try:
+                    conn = psycopg2.connect(connection_string)
+                    cursor = conn.cursor()
 
-                # Insert the new post into the posts_data table
-                cursor.execute(
-                    "INSERT INTO posts_data (username, content) VALUES (%s, %s)",
-                    (username, content),
-                )
+                    # Check if the post_id exists in the posts table
+                    cursor.execute("SELECT id FROM posts WHERE id = %s", (post_id,))
+                    existing_post = cursor.fetchone()
 
-                conn.commit()
-                cursor.close()
-                conn.close()
+                    if not existing_post:
+                        return jsonify({"error": "Invalid request: post not found"}), 400
 
-                return "post added successfully"
+                    # Insert the new comment into the comments table
+                    cursor.execute(
+                        "INSERT INTO comments (post_id, username, content) VALUES (%s, %s, %s) RETURNING id",
+                        (post_id, username, content),
+                    )
 
-            except psycopg2.Error as e:
-                print(f"Error saving data to the database: {e}")
-                return "Unable to save data"
+                    comment_id = cursor.fetchone()[0]
+
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+
+                    return jsonify({"message": "Comment added successfully", "comment_id": comment_id})
+
+                except psycopg2.Error as e:
+                    print(f"Error saving data to the database: {e}")
+                    return jsonify({"error": "Unable to save data"}), 500
+            else:
+                return jsonify({"error": "Invalid request: missing username or content"}), 400
+
         else:
-            return "Invalid request: missing user or content"
+            # This is a request to add a new post
+            if username and content:
+                try:
+                    conn = psycopg2.connect(connection_string)
+                    cursor = conn.cursor()
+
+                    # Insert the new post into the posts table
+                    cursor.execute(
+                        "INSERT INTO posts (username, content) VALUES (%s, %s) RETURNING id",
+                        (username, content),
+                    )
+
+                    post_id = cursor.fetchone()[0]
+
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+
+                    return jsonify({"message": "Post added successfully", "post_id": post_id})
+
+                except psycopg2.Error as e:
+                    print(f"Error saving data to the database: {e}")
+                    return jsonify({"error": "Unable to save data"}), 500
+            else:
+                return jsonify({"error": "Invalid request: missing username or content"}), 400
+
     else:
-        return "Method not allowed"
+        return jsonify({"error": "Method not allowed"}), 405
+
 
 if __name__ == "__main__":
     app.run(debug=True)
