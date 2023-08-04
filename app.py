@@ -46,9 +46,9 @@ def test_database_connection():
         return False
 
 
-@app.route("/database", methods=["GET", "POST"])
+@app.route("/chatdatabase", methods=["GET", "POST"])
 def database():
-    print("this is the /database endpoint")
+    print("this is the /chatdatabase endpoint")
 
     if request.method == "GET":
         try:
@@ -146,7 +146,74 @@ def chat():
         return jsonify(response)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/postsdatabase", methods=["GET", "POST"])
+def posts_endpoint():
+    print("this is the /postsdatabase endpoint")
 
+    if request.method == "GET":
+        try:
+            conn = psycopg2.connect(connection_string)
+            cursor = conn.cursor()
+
+            # Retrieve all the posts from the posts_data table
+            cursor.execute("SELECT id, username, content FROM posts_data")
+            data = cursor.fetchall()
+
+            # Create a list to hold all the posts
+            all_posts = []
+
+            for row in data:
+                post_id = row[0]
+                username = row[1]
+                content = row[2]
+
+                # Create a dictionary for each post
+                post_data = {
+                    "id": post_id,
+                    "username": username,
+                    "content": content
+                }
+
+                all_posts.append(post_data)
+
+            cursor.close()
+            conn.close()
+
+            return jsonify(all_posts)
+
+        except psycopg2.Error as e:
+            print(f"Error retrieving data from the database: {e}")
+            return jsonify({"error": "Unable to retrieve data"}), 500
+
+    elif request.method == "POST":
+        username = request.get_json().get("username")
+        content = request.get_json().get("content")
+
+        if username and content:
+            try:
+                conn = psycopg2.connect(connection_string)
+                cursor = conn.cursor()
+
+                # Insert the new post into the posts_data table
+                cursor.execute(
+                    "INSERT INTO posts_data (username, content) VALUES (%s, %s)",
+                    (username, content),
+                )
+
+                conn.commit()
+                cursor.close()
+                conn.close()
+
+                return "post added successfully"
+
+            except psycopg2.Error as e:
+                print(f"Error saving data to the database: {e}")
+                return "Unable to save data"
+        else:
+            return "Invalid request: missing user or content"
+    else:
+        return "Method not allowed"
 
 if __name__ == "__main__":
     app.run(debug=True)
