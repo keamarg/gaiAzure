@@ -193,24 +193,24 @@ def posts_endpoint():
                         "replies": []
                     }
 
-                    # Retrieve replies for the current comment
-                    cursor.execute("SELECT id, username, content FROM replies WHERE comment_id = %s", (comment_id,))
-                    replies_data = cursor.fetchall()
+                    # # Retrieve replies for the current comment
+                    # cursor.execute("SELECT id, username, content FROM replies WHERE comment_id = %s", (comment_id,))
+                    # replies_data = cursor.fetchall()
 
-                    for reply_row in replies_data:
-                        reply_id = reply_row[0]
-                        reply_username = reply_row[1]
-                        reply_content = reply_row[2]
+                    # for reply_row in replies_data:
+                    #     reply_id = reply_row[0]
+                    #     reply_username = reply_row[1]
+                    #     reply_content = reply_row[2]
 
-                        # Create a dictionary for each reply
-                        reply_data = {
-                            "id": reply_id,
-                            "username": reply_username,
-                            "content": reply_content
-                        }
+                    #     # Create a dictionary for each reply
+                    #     reply_data = {
+                    #         "id": reply_id,
+                    #         "username": reply_username,
+                    #         "content": reply_content
+                    #     }
 
-                        # Add the reply to the comment's 'replies' list
-                        comment_data["replies"].append(reply_data)
+                    #     # Add the reply to the comment's 'replies' list
+                    #     comment_data["replies"].append(reply_data)
 
                     # Add the comment to the post's 'comments' list
                     post_data["comments"].append(comment_data)
