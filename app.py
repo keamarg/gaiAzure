@@ -157,7 +157,7 @@ def posts_endpoint():
             cursor = conn.cursor()
 
             # Retrieve all the posts from the posts table
-            cursor.execute("SELECT id, username, content FROM posts")
+            cursor.execute("SELECT id, username, content, created_at, kea_id FROM posts")
             data = cursor.fetchall()
 
             # Create a list to hold all the posts
@@ -167,29 +167,35 @@ def posts_endpoint():
                 post_id = row[0]
                 username = row[1]
                 content = row[2]
+                created_at = row[3]  # Extract the created_at timestamp
+                kea_id = row[4] 
 
                 # Create a dictionary for each post
                 post_data = {
                     "id": post_id,
                     "username": username,
                     "content": content,
+                    "created_at": created_at,
+                    "kea_id": kea_id,
                     "comments": []
                 }
 
                 # Retrieve comments for the current post
-                cursor.execute("SELECT id, username, content FROM comments WHERE post_id = %s", (post_id,))
+                cursor.execute("SELECT id, username, content, kea_id FROM comments WHERE post_id = %s", (post_id,))
                 comments_data = cursor.fetchall()
 
                 for comment_row in comments_data:
                     comment_id = comment_row[0]
                     comment_username = comment_row[1]
                     comment_content = comment_row[2]
+                    comment_kea_id = comment_row[3]
 
                     # Create a dictionary for each comment
                     comment_data = {
                         "id": comment_id,
                         "username": comment_username,
                         "content": comment_content,
+                        "kea_id": comment_kea_id,
                         "replies": []
                     }
 
@@ -231,6 +237,7 @@ def posts_endpoint():
         post_id = data.get("post_id")
         username = data.get("username")
         content = data.get("content")
+        kea_id = data.get("kea_id")
 
         if post_id:
             # This is a request to add a comment
@@ -248,8 +255,8 @@ def posts_endpoint():
 
                     # Insert the new comment into the comments table
                     cursor.execute(
-                        "INSERT INTO comments (post_id, username, content) VALUES (%s, %s, %s) RETURNING id",
-                        (post_id, username, content),
+                        "INSERT INTO comments (post_id, username, content, kea_id) VALUES (%s, %s, %s, %s) RETURNING id",
+                        (post_id, username, content, kea_id),
                     )
 
                     comment_id = cursor.fetchone()[0]
@@ -275,8 +282,8 @@ def posts_endpoint():
 
                     # Insert the new post into the posts table
                     cursor.execute(
-                        "INSERT INTO posts (username, content) VALUES (%s, %s) RETURNING id",
-                        (username, content),
+                        "INSERT INTO posts (username, content, kea_id) VALUES (%s, %s, %s) RETURNING id",
+                        (username, content, kea_id),
                     )
 
                     post_id = cursor.fetchone()[0]
